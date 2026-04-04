@@ -1,0 +1,68 @@
+# ========================
+# Java / Spring Boot
+# ========================
+backend/target/
+backend/.mvn/wrapper/maven-wrapper.jar
+*.class
+*.jar
+*.war
+*.ear
+*.log
+hs_err_pid*
+
+# ========================
+# Python / FastAPI
+# ========================
+ai-service/__pycache__/
+ai-service/**/__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+.venv/
+venv/
+env/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+
+# ========================
+# Node / Next.js
+# ========================
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+node_modules/
+.next/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ========================
+# Environment
+# ========================
+.env
+.env.local
+.env.*.local
+
+# ========================
+# Project-local docs (not for repo)
+# ========================
+CLAUDE.md
+defer-sprints.md
+
+# ========================
+# IDE / OS
+# ========================
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
