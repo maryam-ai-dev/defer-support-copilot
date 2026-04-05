@@ -8,6 +8,9 @@ import com.defer.backend.conversation.domain.SenderType;
 import com.defer.backend.decision.application.DecisionApplicationService;
 import com.defer.backend.decision.contracts.AiServiceResponse;
 import com.defer.backend.decision.domain.DecisionOutcome;
+import com.defer.backend.handoff.application.HandoffApplicationService;
+import com.defer.backend.handoff.domain.HandoffPacket;
+import com.defer.backend.handoff.domain.HandoffReason;
 import com.defer.backend.integration.ai.AiServiceClient;
 import com.defer.backend.integration.ai.dto.AiSupportRequest;
 import com.defer.backend.integration.ai.dto.AiSupportResponse;
@@ -23,15 +26,18 @@ public class TurnOrchestrationService {
     private final CaseFileApplicationService caseFileService;
     private final AiServiceClient aiServiceClient;
     private final DecisionApplicationService decisionService;
+    private final HandoffApplicationService handoffService;
 
     public TurnOrchestrationService(ConversationApplicationService conversationService,
                                      CaseFileApplicationService caseFileService,
                                      AiServiceClient aiServiceClient,
-                                     DecisionApplicationService decisionService) {
+                                     DecisionApplicationService decisionService,
+                                     HandoffApplicationService handoffService) {
         this.conversationService = conversationService;
         this.caseFileService = caseFileService;
         this.aiServiceClient = aiServiceClient;
         this.decisionService = decisionService;
+        this.handoffService = handoffService;
     }
 
     @Transactional
@@ -86,16 +92,22 @@ public class TurnOrchestrationService {
         // 11. Update CaseFile resolution mode and touch updatedAt
         caseFileService.setResolutionMode(caseFile.getId(), outcome.selectedMode());
 
-        // 12. If escalation, mark candidate (handoff will be wired in Sprint 8)
+        // 12. If escalation, create handoff packet
+        UUID handoffId = null;
         if (outcome.escalationRequired()) {
             caseFileService.markEscalationCandidate(caseFile.getId());
+            HandoffReason reason = determineHandoffReason(aiResponse, outcome);
+            HandoffPacket handoff = handoffService.createHandoffPacket(
+                    caseFile.getId(), reason, "Review escalated case and contact customer");
+            handoffId = handoff.getId();
         }
 
         return new TurnResult(
                 assistantMsg,
                 outcome.selectedMode().name(),
                 outcome.escalationRequired(),
-                caseFile.getId()
+                caseFile.getId(),
+                handoffId
         );
     }
 
@@ -187,10 +199,24 @@ public class TurnOrchestrationService {
         }
     }
 
+    private HandoffReason determineHandoffReason(AiSupportResponse aiResponse, DecisionOutcome outcome) {
+        if (aiResponse.customerState().frustrationScore() > 0.7) {
+            return HandoffReason.HIGH_FRUSTRATION;
+        }
+        if (aiResponse.decisionSignals().repetitionDetected()) {
+            return HandoffReason.REPEATED_ATTEMPTS;
+        }
+        if (aiResponse.retrievalConfidence() < 0.45) {
+            return HandoffReason.LOW_CONFIDENCE;
+        }
+        return HandoffReason.LOW_CONFIDENCE;
+    }
+
     public record TurnResult(
             Message assistantMessage,
             String resolutionMode,
             boolean escalated,
-            UUID caseFileId
+            UUID caseFileId,
+            UUID handoffId
     ) {}
 }

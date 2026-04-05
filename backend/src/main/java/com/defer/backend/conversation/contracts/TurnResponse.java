@@ -7,5 +7,6 @@ public record TurnResponse(
         String resolutionMode,
         boolean escalated,
         UUID caseFileId,
+        UUID handoffId,
         UUID traceId
 ) {}

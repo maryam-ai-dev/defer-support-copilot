@@ -60,6 +60,7 @@ public class ConversationController {
                 result.resolutionMode(),
                 result.escalated(),
                 result.caseFileId(),
+                result.handoffId(),
                 null // traceId wired in observability sprint
         );
     }
