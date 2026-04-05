@@ -47,7 +47,8 @@ export function SidebarNav() {
       <div className="px-2 mt-auto">
         <Link
           href="/demo"
-          className="flex items-center gap-2 px-3 py-2 rounded-md text-xs text-[#5a5a6a] hover:text-[#8a8a96] transition-colors"
+          target="_blank"
+          className="flex items-center justify-center gap-2 mx-1 px-3 py-2 rounded-md text-xs font-medium text-[#4a7ebb] border border-[#4a7ebb]/30 bg-[#4a7ebb]/5 hover:bg-[#4a7ebb]/10 hover:border-[#4a7ebb]/50 transition-colors"
         >
           Open Customer Demo
           <span className="text-[10px]">&#8599;</span>
