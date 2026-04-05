@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { startConversation, sendTurn } from "@/features/chat/api/conversation-api";
+import { createDemoConversation, sendMessage } from "@/features/demo/api/demo-api";
 import { TurnResponse } from "@/features/chat/types/message";
 import { DemoShell } from "@/features/demo/components/DemoShell";
 import { DemoStatusBar } from "@/features/demo/components/DemoStatusBar";
@@ -15,7 +15,7 @@ export default function DemoPage() {
   const [escalated, setEscalated] = useState(false);
 
   useEffect(() => {
-    startConversation("demo").then((conv) => {
+    createDemoConversation().then((conv) => {
       setConversationId(conv.id);
     });
   }, []);
@@ -30,7 +30,7 @@ export default function DemoPage() {
     ]);
 
     try {
-      const result: TurnResponse = await sendTurn(conversationId, text.trim());
+      const result: TurnResponse = await sendMessage(conversationId, text.trim());
 
       setMessages((prev) => [
         ...prev,
