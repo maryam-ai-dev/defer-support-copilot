@@ -1,0 +1,20 @@
+{
+  "conversation_id": "550e8400-e29b-41d4-a716-446655440000",
+  "latest_message": {
+    "message_id": "660e8400-e29b-41d4-a716-446655440001",
+    "role": "CUSTOMER",
+    "text": "My order still hasnt arrived and its been two weeks. I already contacted you about this before and nothing happened. This is really frustrating!"
+  },
+  "recent_history": [
+    {"role": "CUSTOMER", "text": "Where is my order? It was supposed to arrive last week."},
+    {"role": "ASSISTANT", "text": "I apologize for the delay. Let me look into your order status."},
+    {"role": "CUSTOMER", "text": "My order still hasnt arrived and its been two weeks. I already contacted you about this before and nothing happened. This is really frustrating!"}
+  ],
+  "case_summary": {
+    "issue_summary": "Customer reports a delayed order that has not arrived.",
+    "customer_goal": "Receive their order or get a refund.",
+    "attempted_actions": [],
+    "open_questions": ["Where is my order?"],
+    "current_state": {"repetition_count": 1}
+  }
+}
