@@ -1,8 +1,11 @@
 import { EvalMetrics } from "../types/eval";
 
-function MetricCard({ label, value, color }: { label: string; value: string; color?: string }) {
+function MetricCard({ label, value, color, delay }: { label: string; value: string; color?: string; delay?: number }) {
   return (
-    <div className="bg-[#22222a] border border-[#2e2e38] rounded-lg px-4 py-3">
+    <div
+      className="bg-[#22222a] border border-[#2e2e38] rounded-lg px-4 py-3 animate-[fadeIn_0.4s_ease-out_forwards] opacity-0"
+      style={{ animationDelay: `${delay || 0}ms` }}
+    >
       <p className="text-[10px] text-[#5a5a6a] uppercase tracking-wider font-[family-name:var(--font-geist-mono)]">
         {label}
       </p>
@@ -30,10 +33,10 @@ export function EvalSummaryCards({ metrics }: { metrics: EvalMetrics | null }) {
 
   return (
     <div className="grid grid-cols-4 gap-3">
-      <MetricCard label="Pass Rate" value={`${(metrics.passRate * 100).toFixed(0)}%`} color={passColor} />
-      <MetricCard label="Passed" value={String(metrics.passed)} color="text-green-400" />
-      <MetricCard label="Failed" value={String(metrics.failed)} color={metrics.failed > 0 ? "text-red-400" : "text-[#e8e8f0]"} />
-      <MetricCard label="Escalation Correctness" value={`${(metrics.escalationCorrectness * 100).toFixed(0)}%`} color={escColor} />
+      <MetricCard label="Pass Rate" value={`${(metrics.passRate * 100).toFixed(0)}%`} color={passColor} delay={0} />
+      <MetricCard label="Passed" value={String(metrics.passed)} color="text-green-400" delay={80} />
+      <MetricCard label="Failed" value={String(metrics.failed)} color={metrics.failed > 0 ? "text-red-400" : "text-[#e8e8f0]"} delay={160} />
+      <MetricCard label="Escalation Correctness" value={`${(metrics.escalationCorrectness * 100).toFixed(0)}%`} color={escColor} delay={240} />
     </div>
   );
 }
