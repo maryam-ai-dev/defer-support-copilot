@@ -23,6 +23,7 @@ services:
       POSTGRES_URL: jdbc:postgresql://postgres:5432/defer
       POSTGRES_USER: defer
       POSTGRES_PASSWORD: defer
+      AI_SERVICE_URL: http://ai-service:8000
     depends_on:
       postgres:
         condition: service_healthy

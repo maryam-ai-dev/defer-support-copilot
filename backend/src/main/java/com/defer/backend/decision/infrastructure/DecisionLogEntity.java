@@ -1,6 +1,8 @@
 package com.defer.backend.decision.infrastructure;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
@@ -45,6 +47,7 @@ public class DecisionLogEntity {
     @Column(name = "selected_mode")
     private String selectedMode;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "rationale_json", columnDefinition = "jsonb")
     private String rationaleJson;
 
