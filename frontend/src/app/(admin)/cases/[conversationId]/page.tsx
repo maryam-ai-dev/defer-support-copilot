@@ -14,6 +14,11 @@ import { CustomerStateCard } from "@/features/casefile/components/CustomerStateC
 import { AttemptedActionsCard } from "@/features/casefile/components/AttemptedActionsCard";
 import { ResolutionModeCard } from "@/features/casefile/components/ResolutionModeCard";
 import { ErrorBoundary } from "@/shared/components/ErrorBoundary";
+import { PolicyEditorPanel } from "@/features/policy/components/PolicyEditorPanel";
+import { PolicySimulationResult } from "@/features/policy/components/PolicySimulationResult";
+import { simulatePolicy, PolicyOverride, TurnComparison } from "@/features/policy/api/policy-api";
+
+type RightTab = "intelligence" | "policy";
 
 export default function CaseWorkspacePage() {
   const params = useParams();
@@ -22,6 +27,9 @@ export default function CaseWorkspacePage() {
   const [error, setError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const [lastMode, setLastMode] = useState<string | null>(null);
+  const [rightTab, setRightTab] = useState<RightTab>("intelligence");
+  const [simulating, setSimulating] = useState(false);
+  const [simResult, setSimResult] = useState<TurnComparison[] | null>(null);
 
   const loadWorkspace = useCallback(() => {
     if (!conversationId) return;
@@ -64,6 +72,19 @@ export default function CaseWorkspacePage() {
     }
   };
 
+  const handleSimulate = async (override: PolicyOverride) => {
+    if (!conversationId) return;
+    setSimulating(true);
+    try {
+      const result = await simulatePolicy(conversationId, override);
+      setSimResult(result.turns);
+    } catch {
+      setSimResult([]);
+    } finally {
+      setSimulating(false);
+    }
+  };
+
   if (error) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -100,43 +121,81 @@ export default function CaseWorkspacePage() {
         </div>
       }
       right={
-        <div className="p-4 space-y-5">
-          {workspace.caseFile ? (
-            <>
-              <ResolutionModeCard
-                mode={workspace.caseFile.currentResolutionMode}
-                decision={workspace.latestDecision}
-              />
-              <CaseSummaryCard
-                issueSummary={workspace.caseFile.issueSummary}
-                customerGoal={workspace.caseFile.customerGoal}
-              />
-              <CustomerStateCard
-                frustration={workspace.caseFile.frustrationScore}
-                confusion={workspace.caseFile.confusionScore}
-                effort={workspace.caseFile.effortScore}
-                trustRisk={workspace.caseFile.trustRiskScore}
-              />
-              <AttemptedActionsCard actions={workspace.attemptedActions} />
-              {workspace.handoffPacket && (
-                <div className="space-y-2.5">
-                  <h3 className="text-xs font-medium text-red-400 uppercase tracking-wider font-[family-name:var(--font-geist-mono)]">
-                    Handoff Packet
-                  </h3>
-                  <div className="rounded-md px-3 py-2.5 bg-red-500/10 border border-red-500/20">
-                    <p className="text-xs text-red-400 font-[family-name:var(--font-geist-mono)]">
-                      {workspace.handoffPacket.escalationReason.replace(/_/g, " ")}
-                    </p>
-                    <p className="text-[10px] text-[#5a5a6a] mt-1">{workspace.handoffPacket.suggestedNextAction}</p>
+        <div className="flex flex-col h-full">
+          {/* Tabs */}
+          <div className="flex border-b border-[#2e2e38] shrink-0">
+            <button
+              onClick={() => setRightTab("intelligence")}
+              className={`flex-1 px-3 py-2.5 text-[10px] uppercase tracking-wider font-[family-name:var(--font-geist-mono)] transition-colors ${
+                rightTab === "intelligence"
+                  ? "text-[#4a7ebb] border-b-2 border-[#4a7ebb]"
+                  : "text-[#5a5a6a] hover:text-[#8a8a96]"
+              }`}
+            >
+              Intelligence
+            </button>
+            <button
+              onClick={() => setRightTab("policy")}
+              className={`flex-1 px-3 py-2.5 text-[10px] uppercase tracking-wider font-[family-name:var(--font-geist-mono)] transition-colors ${
+                rightTab === "policy"
+                  ? "text-[#4a7ebb] border-b-2 border-[#4a7ebb]"
+                  : "text-[#5a5a6a] hover:text-[#8a8a96]"
+              }`}
+            >
+              Policy
+            </button>
+          </div>
+
+          {/* Tab content */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-5">
+            {rightTab === "intelligence" && (
+              <>
+                {workspace.caseFile ? (
+                  <>
+                    <ResolutionModeCard
+                      mode={workspace.caseFile.currentResolutionMode}
+                      decision={workspace.latestDecision}
+                    />
+                    <CaseSummaryCard
+                      issueSummary={workspace.caseFile.issueSummary}
+                      customerGoal={workspace.caseFile.customerGoal}
+                    />
+                    <CustomerStateCard
+                      frustration={workspace.caseFile.frustrationScore}
+                      confusion={workspace.caseFile.confusionScore}
+                      effort={workspace.caseFile.effortScore}
+                      trustRisk={workspace.caseFile.trustRiskScore}
+                    />
+                    <AttemptedActionsCard actions={workspace.attemptedActions} />
+                    {workspace.handoffPacket && (
+                      <div className="space-y-2.5">
+                        <h3 className="text-xs font-medium text-red-400 uppercase tracking-wider font-[family-name:var(--font-geist-mono)]">
+                          Handoff Packet
+                        </h3>
+                        <div className="rounded-md px-3 py-2.5 bg-red-500/10 border border-red-500/20">
+                          <p className="text-xs text-red-400 font-[family-name:var(--font-geist-mono)]">
+                            {workspace.handoffPacket.escalationReason.replace(/_/g, " ")}
+                          </p>
+                          <p className="text-[10px] text-[#5a5a6a] mt-1">{workspace.handoffPacket.suggestedNextAction}</p>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-xs text-[#5a5a6a]">No case data yet</p>
                   </div>
-                </div>
-              )}
-            </>
-          ) : (
-            <div className="text-center py-8">
-              <p className="text-xs text-[#5a5a6a]">No case data yet</p>
-            </div>
-          )}
+                )}
+              </>
+            )}
+
+            {rightTab === "policy" && (
+              <>
+                <PolicyEditorPanel onSimulate={handleSimulate} simulating={simulating} />
+                {simResult && <PolicySimulationResult turns={simResult} />}
+              </>
+            )}
+          </div>
         </div>
       }
     />
