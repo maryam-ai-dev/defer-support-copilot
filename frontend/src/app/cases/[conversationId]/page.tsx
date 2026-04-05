@@ -1,23 +1,47 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { Workspace } from "@/features/workspace/types/workspace";
 import { fetchWorkspace } from "@/features/workspace/api/workspace-api";
 import { WorkspaceShell } from "@/features/workspace/components/WorkspaceShell";
+import { ConversationThread } from "@/features/chat/components/ConversationThread";
+import { ChatComposer } from "@/features/chat/components/ChatComposer";
+import { SystemEventCard } from "@/features/chat/components/SystemEventCard";
+import { sendTurn } from "@/features/chat/api/conversation-api";
 
 export default function CaseWorkspacePage() {
   const params = useParams();
   const conversationId = params.conversationId as string;
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [sending, setSending] = useState(false);
+  const [lastMode, setLastMode] = useState<string | null>(null);
 
-  useEffect(() => {
+  const loadWorkspace = useCallback(() => {
     if (!conversationId) return;
     fetchWorkspace(conversationId)
       .then(setWorkspace)
       .catch((e) => setError(e.message));
   }, [conversationId]);
+
+  useEffect(() => {
+    loadWorkspace();
+  }, [loadWorkspace]);
+
+  const handleSend = async (message: string) => {
+    if (!conversationId || sending) return;
+    setSending(true);
+    try {
+      const result = await sendTurn(conversationId, message);
+      setLastMode(result.resolutionMode);
+      loadWorkspace();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to send message");
+    } finally {
+      setSending(false);
+    }
+  };
 
   if (error) {
     return (
@@ -45,32 +69,9 @@ export default function CaseWorkspacePage() {
               {workspace.conversation.id.slice(0, 8)}... &middot; {workspace.conversation.channel} &middot; {workspace.conversation.status}
             </p>
           </div>
-          <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
-            {workspace.messages.map((msg) => (
-              <div
-                key={msg.id}
-                className={`max-w-[80%] ${
-                  msg.senderType === "CUSTOMER" ? "ml-auto" : "mr-auto"
-                }`}
-              >
-                <div
-                  className={`rounded-lg px-3 py-2 text-sm ${
-                    msg.senderType === "CUSTOMER"
-                      ? "bg-[#4a7ebb]/20 text-[#e8e8f0]"
-                      : "bg-[#22222a] text-[#e8e8f0] border border-[#2e2e38]"
-                  }`}
-                >
-                  {msg.body}
-                </div>
-                <p className="text-[10px] text-[#5a5a6a] mt-1 font-[family-name:var(--font-geist-mono)]">
-                  {msg.senderType}
-                </p>
-              </div>
-            ))}
-          </div>
-          <div className="border-t border-[#2e2e38] px-4 py-3">
-            <p className="text-xs text-[#5a5a6a]">Chat composer will be added in step 10.4</p>
-          </div>
+          <ConversationThread messages={workspace.messages} />
+          {lastMode && <SystemEventCard mode={lastMode} />}
+          <ChatComposer onSend={handleSend} disabled={sending} />
         </div>
       }
       right={
