@@ -33,6 +33,22 @@ export default function CaseWorkspacePage() {
     loadWorkspace();
   }, [loadWorkspace]);
 
+  // Poll every 3s when tab is visible, stop when case is terminal
+  useEffect(() => {
+    const isTerminal =
+      workspace?.caseFile?.status === "ESCALATED" ||
+      workspace?.caseFile?.status === "RESOLVED";
+    if (!conversationId || isTerminal) return;
+
+    const interval = setInterval(() => {
+      if (document.visibilityState === "visible") {
+        loadWorkspace();
+      }
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [conversationId, loadWorkspace, workspace?.caseFile?.status]);
+
   const handleSend = async (message: string) => {
     if (!conversationId || sending) return;
     setSending(true);
