@@ -14,6 +14,7 @@ import com.defer.backend.handoff.domain.HandoffReason;
 import com.defer.backend.integration.ai.AiServiceClient;
 import com.defer.backend.integration.ai.dto.AiSupportRequest;
 import com.defer.backend.integration.ai.dto.AiSupportResponse;
+import com.defer.backend.observability.application.TraceApplicationService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,21 +28,27 @@ public class TurnOrchestrationService {
     private final AiServiceClient aiServiceClient;
     private final DecisionApplicationService decisionService;
     private final HandoffApplicationService handoffService;
+    private final TraceApplicationService traceService;
 
     public TurnOrchestrationService(ConversationApplicationService conversationService,
                                      CaseFileApplicationService caseFileService,
                                      AiServiceClient aiServiceClient,
                                      DecisionApplicationService decisionService,
-                                     HandoffApplicationService handoffService) {
+                                     HandoffApplicationService handoffService,
+                                     TraceApplicationService traceService) {
         this.conversationService = conversationService;
         this.caseFileService = caseFileService;
         this.aiServiceClient = aiServiceClient;
         this.decisionService = decisionService;
         this.handoffService = handoffService;
+        this.traceService = traceService;
     }
 
     @Transactional
     public TurnResult processTurn(UUID conversationId, String customerMessage) {
+        // Start root trace span
+        UUID rootSpanId = traceService.startTrace(conversationId, "TURN", "turn_orchestration");
+
         // 1. Append customer message
         Message customerMsg = conversationService.appendMessage(
                 conversationId, SenderType.CUSTOMER, customerMessage);
@@ -58,13 +65,21 @@ public class TurnOrchestrationService {
         AiSupportRequest aiRequest = buildAiRequest(
                 conversationId, caseFile, customerMsg, messages);
 
-        // 5. Call FastAPI
+        // 5. Call FastAPI (with trace span)
+        UUID aiSpanId = traceService.startTrace(conversationId, "EXTERNAL_CALL", "ai_service_respond");
         AiSupportResponse aiResponse = aiServiceClient.callSupportRespond(aiRequest);
+        traceService.endTrace(aiSpanId, Map.of(
+                "suggested_mode", aiResponse.suggestedMode(),
+                "retrieval_confidence", aiResponse.retrievalConfidence()));
 
-        // 6. Run decision engine
+        // 6. Run decision engine (with trace span)
+        UUID decisionSpanId = traceService.startTrace(conversationId, "DECISION", "resolution_mode_selection");
         AiServiceResponse decisionInput = toDecisionInput(aiResponse);
         DecisionOutcome outcome = decisionService.evaluateIncomingTurn(
                 conversationId, customerMsg.getId(), decisionInput);
+        traceService.endTrace(decisionSpanId, Map.of(
+                "selected_mode", outcome.selectedMode().name(),
+                "escalation_required", outcome.escalationRequired()));
 
         // 7. Apply memory updates (controlled — not blind write)
         applyMemoryUpdates(caseFile.getId(), aiResponse.memoryUpdate(), caseFile);
@@ -101,6 +116,12 @@ public class TurnOrchestrationService {
                     caseFile.getId(), reason, "Review escalated case and contact customer");
             handoffId = handoff.getId();
         }
+
+        // End root span
+        traceService.endTrace(rootSpanId, Map.of(
+                "final_mode", outcome.selectedMode().name(),
+                "escalated", outcome.escalationRequired(),
+                "message_count", messages.size() + 1));
 
         return new TurnResult(
                 assistantMsg,
