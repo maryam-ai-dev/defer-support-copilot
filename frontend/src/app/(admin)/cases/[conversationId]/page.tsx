@@ -13,6 +13,7 @@ import { CaseSummaryCard } from "@/features/casefile/components/CaseSummaryCard"
 import { CustomerStateCard } from "@/features/casefile/components/CustomerStateCard";
 import { AttemptedActionsCard } from "@/features/casefile/components/AttemptedActionsCard";
 import { ResolutionModeCard } from "@/features/casefile/components/ResolutionModeCard";
+import { ErrorBoundary } from "@/shared/components/ErrorBoundary";
 
 export default function CaseWorkspacePage() {
   const params = useParams();
@@ -74,12 +75,16 @@ export default function CaseWorkspacePage() {
   if (!workspace) {
     return (
       <div className="flex items-center justify-center h-full">
-        <p className="text-[#5a5a6a] text-sm">Loading workspace...</p>
+        <div className="space-y-2 text-center">
+          <div className="animate-pulse rounded-full bg-[#2e2e38] h-8 w-8 mx-auto" />
+          <p className="text-[#5a5a6a] text-sm">Loading workspace...</p>
+        </div>
       </div>
     );
   }
 
   return (
+    <ErrorBoundary>
     <WorkspaceShell
       center={
         <div className="flex flex-col h-full">
@@ -135,5 +140,6 @@ export default function CaseWorkspacePage() {
         </div>
       }
     />
+    </ErrorBoundary>
   );
 }
