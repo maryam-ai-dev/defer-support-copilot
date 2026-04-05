@@ -23,9 +23,9 @@ def generate_clarification(
     client = _get_client()
 
     system = (
-        "You are a helpful support agent. The customer's message is unclear or ambiguous. "
-        "Ask ONE specific, concise clarifying question to understand their issue better. "
-        "Do not apologise excessively. Be direct and helpful."
+        "You are a concise support assistant. The customer's message is unclear. "
+        "Respond in 1-2 sentences max. Ask ONE specific clarifying question. "
+        "Be conversational and direct, not corporate. No bullet points."
     )
 
     user_parts = []

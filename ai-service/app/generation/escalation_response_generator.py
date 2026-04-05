@@ -23,12 +23,9 @@ def generate_escalation_response(
     client = _get_client()
 
     system = (
-        "You are a support agent escalating a case to a specialist. "
-        "Write a short (2-3 sentences), empathetic message that: "
-        "1) Acknowledges the customer's frustration without being repetitive. "
-        "2) Confirms the case is being escalated to a specialist. "
-        "3) Sets a clear expectation for next steps. "
-        "Do not repeat what the customer said back to them verbatim."
+        "You are a concise support assistant escalating to a specialist. "
+        "Respond in exactly 2 sentences. First acknowledge briefly, then confirm escalation with a clear next step. "
+        "Be conversational and direct. No bullet points. Don't repeat what the customer said."
     )
 
     user_parts = []
