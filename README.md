@@ -67,15 +67,15 @@ docker-compose exec -e KB_DIR=/app/datasets/support_kb ai-service python -m app.
 
 ## Key Screens
 
-**Customer Demo** (`/demo`) — Customer-facing chat. Sends messages, receives grounded responses, gets escalation notices. Links to admin view for the same conversation.
+**Customer Demo** (`/demo`) - Customer-facing chat. Sends messages, receives grounded responses, gets escalation notices. Links to admin view for the same conversation.
 
-**Cases Overview** (`/cases`) — Queue of all support cases. Metric cards (open, escalated, high-effort), filterable table, click through to workspace.
+**Cases Overview** (`/cases`) - Queue of all support cases. Metric cards (open, escalated, high-effort), filterable table, click through to workspace.
 
-**Case Workspace** (`/cases/{conversationId}`) — Three-panel layout. Left: case list. Center: conversation thread with chat composer. Right: intelligence panel showing resolution mode, case summary, customer state scores, attempted actions, handoff packet.
+**Case Workspace** (`/cases/{conversationId}`) - Three-panel layout. Left: case list. Center: conversation thread with chat composer. Right: intelligence panel showing resolution mode, case summary, customer state scores, attempted actions, handoff packet.
 
-**Handoff Packet** (`/handoffs/{handoffId}`) — Structured agent brief. Issue summary, customer goal, steps attempted, unresolved items, customer state at escalation, suggested next action.
+**Handoff Packet** (`/handoffs/{handoffId}`) - Structured agent brief. Issue summary, customer goal, steps attempted, unresolved items, customer state at escalation, suggested next action.
 
-**Trace Timeline** (`/traces/{traceId}`) — Expandable timeline of pipeline steps. Shows latency per span, metadata, and decision signals.
+**Trace Timeline** (`/traces/{traceId}`) - Expandable timeline of pipeline steps. Shows latency per span, metadata, and decision signals.
 
 ## Design Decisions
 
