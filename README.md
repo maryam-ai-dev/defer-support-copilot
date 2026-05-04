@@ -90,13 +90,6 @@ docker-compose exec -e KB_DIR=/app/datasets/support_kb ai-service python -m app.
 # Customer demo: http://localhost:3000/demo
 ```
 
-## Roadmap
-
-- [ ] Confidence-weighted policy - trust score influences threshold sensitivity
-- [ ] Multi-turn memory summarisation - compress long CaseFiles without losing signal
-- [ ] A/B policy testing - run two threshold configs in parallel and compare outcomes
-- [ ] Exportable eval reports
-
 ## License
 
 Apache 2.0
